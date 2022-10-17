@@ -29,7 +29,6 @@ void update_length(Polyline_Set& polyline_set) {
 		L += polyline.L;
 	}
 	polyline_set.L = L;
-	printf("L = %f\n", L);
 }
 vec2 lerp(const Polyline& polyline, float t) {
 	t *= polyline.L;
@@ -55,7 +54,7 @@ vec2 lerp(const Polyline_Set& polyline_set, float t) {
 	return polyline_set.back().back();
 }
 
-// const u32 MAX_POINTS = 5;
+
 std::string string_time() {
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
@@ -74,17 +73,13 @@ struct Tree {
 };
 
 Node* add_point(Node* node, vec2 p) {
-	// printf("[%f, %f]", p.x, p.y);
 	if(!node) {
-		// printf("(0)");
 		node = new Node;
 		node->point = p;
 	} else {
 		if(p.x > p.y) {
-			// printf("(1)");
 			node->right = add_point(node->right, {1.f - p.x - p.y, p.x - p.y});
 		} else {
-			// printf("(2)");
 			node->left = add_point(node->left, {p.y - p.x, 1.f - p.x - p.y});
 		}
 	}
@@ -129,10 +124,8 @@ long hash64(u64 h) {
 }
 const Node* find(const Node* node, vec2 p) {
 	if (p.x > p.y) {
-		// printf("(1)\n");
 		if(node->right) return find(node->right, {1.f - p.x - p.y, p.x - p.y});
 	} else {
-		// printf("(2)\n");
 		if(node->left) return find(node->left, {p.y - p.x, 1.f - p.x - p.y});
 	}
 	return node;
@@ -167,35 +160,6 @@ void draw(sf::RenderWindow& rw, const Polyline_Set& polyline_set) {
 
 const u32 PALETTE_SIZE = 4;
 const u32 palette[PALETTE_SIZE] = {
-	// 0xFFB2B1,
-	// 0xFFC4AA,
-	// 0xFFDAD2,
-	// 0xFFF1EE
-
-	// 0xD5FA2A,
-	// 0xDAE02F,
-	// 0xFAEF96,
-	// 0xFFA08F,
-	// 0xEDBC26
-
-	// 0xDBFFFE,
-	// 0x2AFAF3,
-	// 0x2FE0DA,
-	// 0x6FFAF6,
-	// 0x26EDE7
-
-	// 0x845EC2,
-	// 0x4FFBDF,
-	// 0x00C2A8,
-	// 0x008B74
-
-	// 0x845EC2,
-	// 0xD65DB1,
-	// 0xFF6F91,
-	// 0xFF9671,
-	// 0xFFC75F,
-	// 0xF9F871
-
 	0xA7D2CB,
 	0xF2D388,
 	0xC98474,
@@ -220,7 +184,6 @@ sf::Image make_image(const Tree* tree, u32 size, u32 X, u32 Y) {
 
 int main() {
 	const uint32_t win_size = 120, X = 10, Y = 7;
-	//Polyline_Set polyline_set;
 	Polyline polyline;
 
 	sf::CircleShape cursor;
@@ -231,7 +194,6 @@ int main() {
 		vec2 mpos = to_cm((sf::Vector2f)sf::Mouse::getPosition(window));
 		for(sf::Event e; window.pollEvent(e);) {
 			if(e.type == sf::Event::MouseButtonPressed) {
-				//polyline_set.push_back({});
 				pressed = true;
 			} else if(e.type == sf::Event::MouseButtonReleased) {
 				if(!polyline.size() || (polyline.back() != mpos)) {
@@ -244,18 +206,10 @@ int main() {
 				if(e.key.code == sf::Keyboard::Enter) window.close();
 			}
 		}
-		// if(pressed) {
-		// 	auto& polyline = polyline_set.back();
-		// 	if(!polyline.size() || (polyline.back() != mpos && !(I++ % 300))) {
-		// 		polyline.push_back(mpos);
-		// 	}
-		// }
 		window.clear();
 		draw(window, polyline);
 		window.display();
 	}
-
-	// update_length(polyline_set);
 	update_length(polyline);
 	auto pow_rand = [] () -> float {
 		float r = randf() * 2.f - 1.f;
@@ -269,13 +223,11 @@ int main() {
 	Tree tree = make_tree(X, Y);
 	for(u32 i = 0, M = 10000; i < M; i++) {
 		float t = randf();
-		// vec2 dp = vec2{pow_rand(), pow_rand()} * .1f - .05f;
 		vec2 dp = vec2{(float)d(gen), (float)d(gen)};
 		dp *= .15;
 		vec2 p = lerp(polyline, t) / win_size;
 		add_point(&tree, p + dp);
 	}
-	printf("ok\n");
 	sf::Image image = make_image(&tree, 120, X, Y);
 	image.saveToFile("output/" + string_time() + ".png");
 	free(&tree);
